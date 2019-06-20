@@ -7,6 +7,12 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 
+import java.util.HashMap;
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -15,6 +21,8 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
+
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
 
 /**
  * Created by poberwong on 16/6/30.
@@ -25,6 +33,7 @@ public class IntentLauncherModule extends ReactContextBaseJavaModule implements 
     private static final String ATTR_TYPE = "type";
     private static final String ATTR_CATEGORY = "category";
     private static final String TAG_EXTRA = "extra";
+    private static final String TAG_VAR = "var";
     private static final String ATTR_DATA = "data";
     private static final String ATTR_FLAGS = "flags";
     private static final String ATTR_PACKAGE_NAME = "packageName";
@@ -80,6 +89,15 @@ public class IntentLauncherModule extends ReactContextBaseJavaModule implements 
         if (params.hasKey(TAG_EXTRA)) {
             intent.putExtras(Arguments.toBundle(params.getMap(TAG_EXTRA)));
         }
+        if (true || params.hasKey(TAG_VAR)) {
+            /*HashMap<String, String> variableData = new HashMap<>();
+             variableData.put("%PRODUCT_NAME%", "Apples");
+             variableData.put("%MSRP%", "$1.00");
+             variableData.put("%PCT%", "50");
+             variableData.put("%FINAL%", "$0.50");
+             variableData.put("%UPC_CODE%", "12345678");*/
+            intent.putExtra("com.zebra.printconnect.PrintService.VARIABLE_DATA", this.toHashMap(params.getMap(TAG_VAR)));
+        }
         if (params.hasKey(ATTR_FLAGS)) {
             intent.addFlags(params.getInt(ATTR_FLAGS));
         }
@@ -88,6 +106,22 @@ public class IntentLauncherModule extends ReactContextBaseJavaModule implements 
         }
         getReactApplicationContext().startService(intent); // 暂时使用当前应用的任务栈
     }
+
+      public HashMap toHashMap(ReadableMap readableMap) {
+        if (readableMap == null) {
+          return null;
+        }
+
+        ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
+
+        HashMap<String, String> variableData = new HashMap<>();
+        while (iterator.hasNextKey()) {
+          String key = iterator.nextKey();
+          variableData.put(key, readableMap.getString(key));
+        }
+
+        return variableData;
+      }
 
     @ReactMethod
     public void isAppInstalled(String packageName, final Promise promise) {
